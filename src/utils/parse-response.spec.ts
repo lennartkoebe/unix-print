@@ -1,4 +1,4 @@
-import execAsync from "../utils/exec-async";
+import { execFileAsync } from "../utils/exec-async";
 import { getRequestId, default as isPrintComplete } from "./parse-response";
 
 jest.mock("../utils/exec-async");
@@ -44,14 +44,14 @@ describe("getRequestId", () => {
 
 describe("isPrintComplete", () => {
   beforeEach(() => {
-    execAsync.mockImplementationOnce(() =>
+    execFileAsync.mockImplementationOnce(() =>
       Promise.resolve({ stdout: queuedStdout })
     );
   });
 
   afterEach(() => {
     // restore the original implementation.
-    execAsync.mockRestore();
+    execFileAsync.mockRestore();
   });
 
   it("job is still on the queue", async () => {
@@ -63,7 +63,7 @@ describe("isPrintComplete", () => {
     const result = isPrintComplete(printResponse);
 
     await expect(result).resolves.toEqual(false);
-    expect(execAsync).toBeCalledWith(`lpstat -o lp0`);
+    expect(execFileAsync).toBeCalledWith("lpstat", ["-o", "lp0"]);
   });
 
   it("job is not on the queue", async () => {
@@ -82,8 +82,8 @@ describe("isPrintComplete", () => {
       stdout: "request id is lp0-39 (1 file(s))",
       stderr: null,
     };
-    execAsync.mockRestore();
-    execAsync.mockImplementationOnce(() => Promise.resolve({ stdout: "" }));
+    execFileAsync.mockRestore();
+    execFileAsync.mockImplementationOnce(() => Promise.resolve({ stdout: "" }));
 
     const result = isPrintComplete(printResponse);
 
